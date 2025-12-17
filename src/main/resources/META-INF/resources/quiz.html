@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Master - Quiz starten</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="overview.html">
+                <i class="bi bi-trophy-fill me-2"></i>Quiz Master
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="create.html">
+                            <i class="bi bi-pencil-square me-1"></i>Fragen erstellen
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="overview.html">
+                            <i class="bi bi-list-check me-1"></i>Übersicht
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="quiz.html">
+                            <i class="bi bi-play-circle me-1"></i>Quiz starten
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Quiz Setup -->
+        <div id="quizSetup">
+            <h1><i class="bi bi-play-circle-fill"></i> Quiz starten</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Filter auswählen (optional)</h5>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="filterCategory" class="form-label">Kategorie</label>
+                            <select class="form-select" id="filterCategory">
+                                <option value="">Alle Kategorien</option>
+                                <option value="IT-Systeme">IT-Systeme</option>
+                                <option value="Netzwerktechnik">Netzwerktechnik</option>
+                                <option value="Betriebssysteme">Betriebssysteme</option>
+                                <option value="Programmierung">Programmierung</option>
+                                <option value="Datenbanken">Datenbanken</option>
+                                <option value="IT-Sicherheit">IT-Sicherheit</option>
+                                <option value="Software-Engineering">Software-Engineering</option>
+                                <option value="Wirtschaft & Recht">Wirtschaft & Recht</option>
+                                <option value="Projektmanagement">Projektmanagement</option>
+                                <option value="Elektrotechnik">Elektrotechnik</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="filterDifficulty" class="form-label">Schwierigkeit</label>
+                            <select class="form-select" id="filterDifficulty">
+                                <option value="">Alle Schwierigkeiten</option>
+                                <option value="leicht">Leicht</option>
+                                <option value="mittel">Mittel</option>
+                                <option value="schwer">Schwer</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button class="btn btn-primary btn-lg" onclick="startQuiz()">
+                            <i class="bi bi-rocket-takeoff-fill me-2"></i>Quiz starten
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="stats" class="row text-center">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 id="totalQuestions" class="text-primary">0</h2>
+                            <p class="mb-0">Verfügbare Fragen</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 id="mcQuestions" class="text-info">0</h2>
+                            <p class="mb-0">Multiple Choice</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h2 id="otherQuestions" class="text-success">0</h2>
+                            <p class="mb-0">Text & Zuordnung</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quizContainer" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-question-circle-fill"></i> Quiz</h1>
+                <button class="btn btn-outline-danger" onclick="endQuiz()">
+                    <i class="bi bi-x-circle"></i> Beenden
+                </button>
+            </div>
+            
+            <div class="progress mb-4" style="height: 30px;">
+                <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span id="questionCounter" class="badge bg-primary">Frage 1 / 10</span>
+                        <span id="questionType" class="badge bg-info">Multiple Choice</span>
+                    </div>
+                    
+                    <h3 id="questionText" class="mb-4"></h3>
+                    
+                    <div id="answersContainer"></div>
+                    
+                    <div id="feedbackContainer" style="display: none;" class="mt-4"></div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button id="checkButton" class="btn btn-primary btn-lg" onclick="checkAnswer()">
+                            <i class="bi bi-check-circle-fill"></i> Antwort überprüfen
+                        </button>
+                        <button id="nextButton" class="btn btn-success btn-lg" onclick="nextQuestion()" style="display: none;">
+                            <i class="bi bi-arrow-right-circle-fill"></i> Nächste Frage
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div id="resultsContainer" style="display: none;">
+            <h1><i class="bi bi-trophy-fill"></i> Ergebnis</h1>
+            
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <h2 class="display-1 mb-4" id="scorePercentage">0%</h2>
+                    <h4 id="scoreText">0 von 0 richtig</h4>
+                    <div class="mt-4">
+                        <span id="resultBadge" class="badge fs-5"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 id="correctCount" class="text-success">0</h3>
+                            <p class="mb-0"><i class="bi bi-check-circle-fill"></i> Richtig</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 id="wrongCount" class="text-danger">0</h3>
+                            <p class="mb-0"><i class="bi bi-x-circle-fill"></i> Falsch</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button class="btn btn-primary btn-lg" onclick="resetQuiz()">
+                    <i class="bi bi-arrow-repeat"></i> Neues Quiz starten
+                </button>
+                <a href="index.html" class="btn btn-outline-secondary btn-lg">
+                    <i class="bi bi-house-fill"></i> Zurück zur Übersicht
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="quiz.js"></script>
+</body>
+</html>

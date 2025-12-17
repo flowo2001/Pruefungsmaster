@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Master - Übersicht</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="overview.html">
+                <i class="bi bi-trophy-fill me-2"></i>Quiz Master
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="create.html">
+                            <i class="bi bi-pencil-square me-1"></i>Fragen erstellen
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="overview.html">
+                            <i class="bi bi-list-check me-1"></i>Übersicht
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="quiz.html">
+                            <i class="bi bi-play-circle me-1"></i>Quiz starten
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <h1><i class="bi bi-grid-3x3-gap-fill"></i> Kategorien Übersicht</h1>
+        
+        <!-- Gesamtstatistik -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-card-list fs-1 text-primary mb-2"></i>
+                        <h3 id="totalQuestions" class="mb-0">0</h3>
+                        <p class="text-muted mb-0">Fragen gesamt</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-folder-fill fs-1 text-success mb-2"></i>
+                        <h3 id="totalCategories" class="mb-0">0</h3>
+                        <p class="text-muted mb-0">Kategorien</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle-fill fs-1 text-info mb-2"></i>
+                        <h3 id="mcQuestions" class="mb-0">0</h3>
+                        <p class="text-muted mb-0">Multiple Choice</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stats-card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-pencil-fill fs-1 text-warning mb-2"></i>
+                        <h3 id="otherQuestions" class="mb-0">0</h3>
+                        <p class="text-muted mb-0">Text & Zuordnung</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Kategorien Karten -->
+        <h2 class="mb-4"><i class="bi bi-tags-fill"></i> Kategorien</h2>
+        <div id="categoriesContainer" class="row g-4">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
+
+        <!-- Leere Zustand -->
+        <div id="emptyState" class="text-center py-5" style="display: none;">
+            <i class="bi bi-inbox fs-1 text-muted mb-3"></i>
+            <h3 class="text-muted">Noch keine Fragen vorhanden</h3>
+            <p class="text-muted mb-4">Erstelle deine ersten Fragen, um sie hier zu sehen!</p>
+            <a href="create.html" class="btn btn-primary btn-lg">
+                <i class="bi bi-plus-circle-fill me-2"></i>Frage erstellen
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="overview.js"></script>
+</body>
+</html>
