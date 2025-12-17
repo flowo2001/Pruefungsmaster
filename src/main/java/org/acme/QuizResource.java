@@ -24,6 +24,9 @@ public class QuizResource {
 
     @Inject
     QuizQuestionRepository repository;
+    
+    @Inject
+    QuizService quizService;
 
     @GET
     public List<QuizQuestion> getAllQuestions() {
@@ -54,31 +57,32 @@ public class QuizResource {
 
     @POST
     public Response createQuestion(QuizQuestion question) {
-        repository.persist(question);
-        return Response.status(Response.Status.CREATED).entity(question).build();
+        try {
+            QuizQuestion created = quizService.createQuestion(question);
+            return Response.status(Response.Status.CREATED).entity(created).build();
+        } catch (IllegalArgumentException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                .build();
+        }
     }
 
     @PUT
     @Path("/{id}")
     public Response updateQuestion(@PathParam("id") String id, QuizQuestion updatedQuestion) {
-        QuizQuestion question = repository.findById(new ObjectId(id));
-        if (question == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
+        try {
+            QuizQuestion updated = quizService.updateQuestion(id, updatedQuestion);
+            return Response.ok(updated).build();
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("nicht gefunden")) {
+                return Response.status(Response.Status.NOT_FOUND)
+                    .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                    .build();
+            }
+            return Response.status(Response.Status.BAD_REQUEST)
+                .entity("{\"error\": \"" + e.getMessage() + "\"}")
+                .build();
         }
-        
-        question.question = updatedQuestion.question;
-        question.questionType = updatedQuestion.questionType;
-        question.answers = updatedQuestion.answers;
-        question.correctAnswerIndices = updatedQuestion.correctAnswerIndices;
-        question.textAnswer = updatedQuestion.textAnswer;
-        question.leftItems = updatedQuestion.leftItems;
-        question.rightItems = updatedQuestion.rightItems;
-        question.correctMappings = updatedQuestion.correctMappings;
-        question.category = updatedQuestion.category;
-        question.difficulty = updatedQuestion.difficulty;
-        
-        repository.update(question);
-        return Response.ok(question).build();
     }
 
     @DELETE
@@ -116,5 +120,21 @@ public class QuizResource {
         
         int randomIndex = (int) (Math.random() * questions.size());
         return Response.ok(questions.get(randomIndex)).build();
+    }
+    
+    @GET
+    @Path("/statistics")
+    public Response getStatistics() {
+        return Response.ok(quizService.getStatistics()).build();
+    }
+    
+    @GET
+    @Path("/filter")
+    public Response filterQuestions(
+            @QueryParam("type") String type,
+            @QueryParam("category") String category,
+            @QueryParam("difficulty") String difficulty) {
+        List<QuizQuestion> filtered = quizService.filterQuestions(type, category, difficulty);
+        return Response.ok(filtered).build();
     }
 }

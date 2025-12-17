@@ -9,19 +9,52 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-trophy-fill me-2"></i>Quiz Master
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <i class="bi bi-pencil-square me-1"></i>Fragen erstellen
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-list-check me-1"></i>Übersicht
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="bi bi-play-circle me-1"></i>Quiz starten
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="main-container">
-        <h1><i class="bi bi-trophy-fill"></i> Quiz Master</h1>
+        <h1><i class="bi bi-pencil-square"></i> Fragen verwalten</h1>
         
         <div id="message" class="alert" role="alert" style="display: none;"></div>
 
         <form id="quizForm" class="needs-validation" novalidate>
+            <!-- Schritt 1: Frage -->
             <div class="mb-3">
                 <label for="question" class="form-label">Frage *</label>
                 <input type="text" class="form-control form-control-lg" id="question" required placeholder="Gib hier deine Frage ein...">
                 <div class="invalid-feedback">Bitte gib eine Frage ein.</div>
             </div>
 
-            <div class="mb-3">
+            <!-- Schritt 2: Fragetyp -->
+            <div class="mb-3 form-step" id="step-questionType">
                 <label for="questionType" class="form-label">Fragetyp *</label>
                 <select class="form-select" id="questionType" required onchange="toggleAnswerType()">
                     <option value="">Wähle einen Fragetyp...</option>
@@ -32,7 +65,7 @@
                 <div class="invalid-feedback">Bitte wähle einen Fragetyp.</div>
             </div>
 
-            <div class="card mb-3" id="multipleChoiceSection" style="display: none;">
+            <div class="card mb-3 form-step" id="multipleChoiceSection" style="display: none;">
                 <div class="card-body bg-light">
                     <div class="mb-3">
                         <label for="answerCount" class="form-label fw-bold">Anzahl der Antwortmöglichkeiten</label>
@@ -47,7 +80,7 @@
                 </div>
             </div>
 
-            <div class="card mb-3" id="textAnswerSection" style="display: none;">
+            <div class="card mb-3 form-step" id="textAnswerSection" style="display: none;">
                 <div class="card-body bg-light">
                     <label for="textAnswer" class="form-label fw-bold">Richtige Antwort (Freitext) *</label>
                     <textarea class="form-control" id="textAnswer" rows="3" placeholder="Gib hier die richtige Antwort ein..."></textarea>
@@ -56,7 +89,7 @@
                 </div>
             </div>
 
-            <div class="card mb-3" id="matchingSection" style="display: none;">
+            <div class="card mb-3 form-step" id="matchingSection" style="display: none;">
                 <div class="card-body bg-light">
                     <div class="mb-3">
                         <label for="itemCount" class="form-label fw-bold">Anzahl der zuzuordnenden Items</label>
@@ -95,7 +128,8 @@
                 </div>
             </div>
 
-            <div class="row mb-3">
+            <!-- Schritt 3: Kategorie und Schwierigkeit -->
+            <div class="row mb-3 form-step" id="step-metadata">
                 <div class="col-md-6">
                     <label for="category" class="form-label">Kategorie *</label>
                     <select class="form-select" id="category" required>
@@ -126,8 +160,8 @@
                 </div>
             </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">
+            <div class="d-grid gap-2 form-step" id="step-buttons">
+                <button type="submit" class="btn btn-primary btn-lg" id="submitButton" disabled>
                     <i class="bi bi-check-circle-fill"></i> Frage speichern
                 </button>
                 <button type="button" class="btn btn-outline-secondary" onclick="resetForm()">

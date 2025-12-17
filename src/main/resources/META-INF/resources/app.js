@@ -1,5 +1,154 @@
 const API_URL = '/api/quiz';
 
+// Schrittweise Formularanzeige
+function initializeFormSteps() {
+    const questionInput = document.getElementById('question');
+    const questionTypeSelect = document.getElementById('questionType');
+    const categorySelect = document.getElementById('category');
+    const difficultySelect = document.getElementById('difficulty');
+    
+    // Zeige Fragetyp wenn Frage eingegeben
+    questionInput.addEventListener('input', function() {
+        if (this.value.trim().length > 0) {
+            showStep('step-questionType');
+        } else {
+            hideStep('step-questionType');
+            hideStep('step-metadata');
+            hideStep('step-buttons');
+        }
+    });
+    
+    // Zeige Kategorie/Schwierigkeit wenn Fragetyp gewählt
+    questionTypeSelect.addEventListener('change', function() {
+        if (this.value) {
+            showStep('step-metadata');
+        } else {
+            hideStep('step-metadata');
+            hideStep('step-buttons');
+        }
+    });
+    
+    // Zeige Buttons wenn Kategorie und Schwierigkeit gewählt
+    function checkMetadata() {
+        if (categorySelect.value && difficultySelect.value) {
+            showStep('step-buttons');
+        } else {
+            hideStep('step-buttons');
+        }
+    }
+    
+    categorySelect.addEventListener('change', checkMetadata);
+    difficultySelect.addEventListener('change', checkMetadata);
+    
+    // Validiere Formular für Button-Aktivierung
+    setupFormValidation();
+}
+
+function setupFormValidation() {
+    const questionInput = document.getElementById('question');
+    const questionTypeSelect = document.getElementById('questionType');
+    const categorySelect = document.getElementById('category');
+    const difficultySelect = document.getElementById('difficulty');
+    const submitButton = document.getElementById('submitButton');
+    
+    function validateForm() {
+        const question = questionInput.value.trim();
+        const questionType = questionTypeSelect.value;
+        const category = categorySelect.value;
+        const difficulty = difficultySelect.value;
+        
+        // Basisvalidierung
+        if (!question || !questionType || !category || !difficulty) {
+            submitButton.disabled = true;
+            return;
+        }
+        
+        // Typspezifische Validierung
+        let typeValid = false;
+        
+        if (questionType === 'multiple-choice') {
+            typeValid = validateMultipleChoice();
+        } else if (questionType === 'text') {
+            typeValid = validateTextAnswer();
+        } else if (questionType === 'matching') {
+            typeValid = validateMatching();
+        }
+        
+        submitButton.disabled = !typeValid;
+    }
+    
+    function validateMultipleChoice() {
+        const answerCount = parseInt(document.getElementById('answerCount').value) || 5;
+        
+        // Prüfe nur ob Felder existieren und ausgefüllt sind
+        for (let i = 0; i < answerCount; i++) {
+            const answerElement = document.getElementById(`answer${i}`);
+            if (!answerElement || !answerElement.value.trim()) {
+                return false;
+            }
+        }
+        
+        return document.querySelectorAll('input[name="correct"]:checked').length > 0;
+    }
+    
+    function validateTextAnswer() {
+        const textAnswer = document.getElementById('textAnswer');
+        return textAnswer && textAnswer.value.trim().length > 0;
+    }
+    
+    function validateMatching() {
+        const itemCount = parseInt(document.getElementById('itemCount').value) || 4;
+        const categoryCount = parseInt(document.getElementById('categoryCount').value) || 3;
+        
+        // Prüfe nur ob Felder ausgefüllt sind
+        for (let i = 0; i < itemCount; i++) {
+            const itemElement = document.getElementById(`leftItem${i}`);
+            if (!itemElement || !itemElement.value.trim()) return false;
+        }
+        
+        for (let i = 0; i < categoryCount; i++) {
+            const catElement = document.getElementById(`rightItem${i}`);
+            if (!catElement || !catElement.value.trim()) return false;
+        }
+        
+        // Prüfe ob mindestens eine Checkbox angeklickt ist
+        return document.querySelectorAll('#mappingsContainer input[type="checkbox"]:checked').length > 0;
+    }
+    
+    // Event Listener für alle Felder
+    questionInput.addEventListener('input', validateForm);
+    questionTypeSelect.addEventListener('change', validateForm);
+    categorySelect.addEventListener('change', validateForm);
+    difficultySelect.addEventListener('change', validateForm);
+    
+    // Delegierter Event Listener für dynamische Felder
+    document.getElementById('quizForm').addEventListener('input', function(e) {
+        if (e.target.matches('input[type="text"], textarea, input[type="checkbox"]')) {
+            validateForm();
+        }
+    });
+    
+    document.getElementById('quizForm').addEventListener('change', function(e) {
+        if (e.target.matches('input[type="checkbox"], input[type="number"]')) {
+            validateForm();
+        }
+    });
+}
+
+function showStep(stepId) {
+    const step = document.getElementById(stepId);
+    if (step && !step.classList.contains('visible')) {
+        step.classList.add('visible');
+    }
+}
+
+function hideStep(stepId) {
+    const step = document.getElementById(stepId);
+    if (step) {
+        step.classList.remove('visible');
+    }
+}
+
 // Fragetyp wechseln
 function toggleAnswerType() {
     const questionType = document.getElementById('questionType').value;
@@ -147,26 +296,10 @@ document.getElementById('quizForm').addEventListener('submit', async (e) => {
             correctAnswerIndices.push(parseInt(checkbox.value));
         });
         
-        // Validierung: Mindestens eine richtige Antwort muss ausgewählt sein
-        if (correctAnswerIndices.length === 0) {
-            showMessage('Bitte wähle mindestens eine richtige Antwort aus! ❌', 'error');
-            return;
-        }
-        
         data.answers = answers;
         data.correctAnswerIndices = correctAnswerIndices;
-        data.textAnswer = null;
-        data.leftItems = null;
-        data.rightItems = null;
-        data.correctMappings = null;
     } else if (questionType === 'text') {
-        const textAnswer = document.getElementById('textAnswer').value;
-        data.answers = null;
-        data.correctAnswerIndices = null;
-        data.textAnswer = textAnswer;
-        data.leftItems = null;
-        data.rightItems = null;
-        data.correctMappings = null;
+        data.textAnswer = document.getElementById('textAnswer').value;
     } else if (questionType === 'matching') {
         const itemCount = parseInt(document.getElementById('itemCount').value) || 4;
         const categoryCount = parseInt(document.getElementById('categoryCount').value) || 3;
@@ -207,23 +340,9 @@ document.getElementById('quizForm').addEventListener('submit', async (e) => {
             }
         }
         
-        // Validierung
-        if (leftItems.length === 0 || rightItems.length === 0) {
-            showMessage('Bitte fülle alle Items und Kategorien aus! ❌', 'error');
-            return;
-        }
-        
-        if (correctMappings.length === 0) {
-            showMessage('Bitte lege mindestens eine Zuordnung fest! ❌', 'error');
-            return;
-        }
-        
         data.leftItems = leftItems;
         data.rightItems = rightItems;
         data.correctMappings = correctMappings;
-        data.answers = null;
-        data.correctAnswerIndices = null;
-        data.textAnswer = null;
     }
 
     try {
@@ -250,7 +369,13 @@ document.getElementById('quizForm').addEventListener('submit', async (e) => {
             resetForm();
             loadQuestions();
         } else {
-            showMessage('Fehler beim Speichern der Frage! ❌', 'error');
+            // Zeige Backend-Fehlermeldung
+            try {
+                const errorData = await response.json();
+                showMessage(errorData.error || 'Fehler beim Speichern der Frage! ❌', 'error');
+            } catch {
+                showMessage('Fehler beim Speichern der Frage! ❌', 'error');
+            }
         }
     } catch (error) {
         showMessage('Verbindungsfehler: ' + error.message + ' ❌', 'error');
@@ -285,6 +410,12 @@ function resetForm() {
     // Button-Text zurücksetzen
     const submitButton = document.querySelector('#quizForm button[type="submit"]');
     submitButton.innerHTML = '<i class="bi bi-check-circle-fill"></i> Frage speichern';
+    submitButton.disabled = true;
+    
+    // Alle Steps außer dem ersten verstecken
+    hideStep('step-questionType');
+    hideStep('step-metadata');
+    hideStep('step-buttons');
     
     toggleAnswerType();
 }
@@ -459,9 +590,15 @@ async function editQuestion(id) {
         // ID merken für Update
         editingQuestionId = id;
         
+        // Alle Steps sichtbar machen beim Bearbeiten
+        showStep('step-questionType');
+        showStep('step-metadata');
+        showStep('step-buttons');
+        
         // Button-Text ändern
         const submitButton = document.querySelector('#quizForm button[type="submit"]');
         submitButton.innerHTML = '<i class="bi bi-save-fill"></i> Änderungen speichern';
+        submitButton.disabled = false;
         
         // Zum Formular scrollen
         document.getElementById('quizForm').scrollIntoView({ behavior: 'smooth' });
@@ -494,5 +631,8 @@ async function deleteQuestion(id) {
     }
 }
 
-// Beim Laden der Seite Fragen laden
-window.addEventListener('load', loadQuestions);
+// Beim Laden der Seite Fragen laden und Formularschritte initialisieren
+window.addEventListener('load', function() {
+    loadQuestions();
+    initializeFormSteps();
+});
