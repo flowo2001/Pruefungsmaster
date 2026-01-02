@@ -1,0 +1,19 @@
+[Unit]
+Description=Pruefungsmaster Quarkus Application Container
+After=network.target mongodb.service
+Requires=mongodb.service
+
+[Service]
+Restart=always
+Type=simple
+ExecStop=podman stop pruefungsmaster
+ExecStopPost=podman rm -f pruefungsmaster
+ExecStart=podman run --name pruefungsmaster \
+  --network backend \
+  -p 8080:8080 \
+  -e QUARKUS_MONGODB_CONNECTION_STRING=mongodb://admin:password@mongodb:27017/quizmaster?authSource=admin \
+  pruefungsmaster:latest
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
