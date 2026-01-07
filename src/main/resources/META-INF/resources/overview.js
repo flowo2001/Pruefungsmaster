@@ -1,4 +1,44 @@
 const API_URL = '/api/quiz';
+const USER_KEY_STORAGE = 'quizUserKey';
+
+function getUserKey() {
+    return localStorage.getItem(USER_KEY_STORAGE) || '';
+}
+
+function saveUserKey() {
+    const val = document.getElementById('userKeyInput').value.trim();
+    if (!val) {
+        alert('Bitte einen User-Key einfügen.');
+        return;
+    }
+    localStorage.setItem(USER_KEY_STORAGE, val);
+    updateUserKeyState();
+    loadData();
+}
+
+function clearUserKey() {
+    localStorage.removeItem(USER_KEY_STORAGE);
+    document.getElementById('userKeyInput').value = '';
+    updateUserKeyState();
+}
+
+function updateUserKeyState() {
+    const hasKey = !!getUserKey();
+    const badge = document.getElementById('userKeyStatus');
+    if (badge) {
+        badge.className = 'badge ' + (hasKey ? 'bg-success' : 'bg-secondary');
+        badge.textContent = hasKey ? 'Key gesetzt' : 'Kein Schlüssel gesetzt';
+    }
+}
+
+function ensureUserKey() {
+    const key = getUserKey();
+    if (!key) {
+        alert('Bitte zuerst einen User-Key speichern.');
+        return null;
+    }
+    return key;
+}
 
 // Kategorie-Icons Mapping
 const categoryIcons = {
@@ -33,18 +73,30 @@ let categoryStats = {};
 
 // Lade Daten beim Start
 window.addEventListener('load', async function() {
+    const input = document.getElementById('userKeyInput');
+    if (input) {
+        input.value = getUserKey();
+    }
+    updateUserKeyState();
     await loadData();
 });
 
 // Lade alle Daten
 async function loadData() {
     try {
+        const key = ensureUserKey();
+        if (!key) return;
+
         // Lade Statistiken
-        const statsResponse = await fetch(`${API_URL}/statistics`);
+        const statsResponse = await fetch(`${API_URL}/statistics`, {
+            headers: { 'X-API-Key': key }
+        });
         const stats = await statsResponse.json();
         
         // Lade alle Fragen
-        const questionsResponse = await fetch(API_URL);
+        const questionsResponse = await fetch(API_URL, {
+            headers: { 'X-API-Key': key }
+        });
         allQuestions = await questionsResponse.json();
         
         // Update UI

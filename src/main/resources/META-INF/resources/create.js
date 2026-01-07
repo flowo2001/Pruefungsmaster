@@ -1,4 +1,92 @@
 const API_URL = '/api/quiz';
+const ADMIN_KEY_STORAGE = 'quizAdminKey';
+const USER_KEY_STORAGE = 'quizUserKey';
+
+function getAdminKey() {
+    return localStorage.getItem(ADMIN_KEY_STORAGE) || '';
+}
+
+function getUserKey() {
+    return localStorage.getItem(USER_KEY_STORAGE) || '';
+}
+
+function saveAdminKey() {
+    const key = document.getElementById('adminKeyInput').value.trim();
+    if (!key) {
+        showMessage('Bitte einen Admin-Key einfügen.', 'error');
+        return;
+    }
+    localStorage.setItem(ADMIN_KEY_STORAGE, key);
+    updateAdminKeyState();
+    showMessage('Admin-Key gespeichert. ✅', 'success');
+}
+
+function clearAdminKey() {
+    localStorage.removeItem(ADMIN_KEY_STORAGE);
+    document.getElementById('adminKeyInput').value = '';
+    updateAdminKeyState();
+    showMessage('Admin-Key entfernt.', 'info');
+}
+
+function saveUserKey() {
+    const key = document.getElementById('userKeyInput').value.trim();
+    if (!key) {
+        showMessage('Bitte einen User-Key einfügen.', 'error');
+        return;
+    }
+    localStorage.setItem(USER_KEY_STORAGE, key);
+    updateUserKeyState();
+    showMessage('User-Key gespeichert. ✅', 'success');
+}
+
+function clearUserKey() {
+    localStorage.removeItem(USER_KEY_STORAGE);
+    document.getElementById('userKeyInput').value = '';
+    updateUserKeyState();
+    showMessage('User-Key entfernt.', 'info');
+}
+
+function updateAdminKeyState() {
+    const hasKey = !!getAdminKey();
+    const badge = document.getElementById('adminKeyStatus');
+    if (badge) {
+        badge.className = 'badge ' + (hasKey ? 'bg-success' : 'bg-secondary');
+        badge.textContent = hasKey ? 'Key gesetzt' : 'Kein Schlüssel gesetzt';
+    }
+
+    // Disable submit button if no key is present
+    const submitButton = document.getElementById('submitButton');
+    if (submitButton && !hasKey) {
+        submitButton.disabled = true;
+    }
+}
+
+function updateUserKeyState() {
+    const hasKey = !!getUserKey();
+    const badge = document.getElementById('userKeyStatus');
+    if (badge) {
+        badge.className = 'badge ' + (hasKey ? 'bg-success' : 'bg-secondary');
+        badge.textContent = hasKey ? 'Key gesetzt' : 'Kein Schlüssel gesetzt';
+    }
+}
+
+function ensureReadKey() {
+    const adminKey = getAdminKey();
+    if (adminKey) return adminKey;
+    const userKey = getUserKey();
+    if (userKey) return userKey;
+    showMessage('Bitte einen User- oder Admin-Key speichern.', 'error');
+    return null;
+}
+
+function ensureAdminKey() {
+    const key = getAdminKey();
+    if (!key) {
+        showMessage('Bitte zuerst den Admin-Key speichern (oben im Formular).', 'error');
+        return null;
+    }
+    return key;
+}
 
 // Schrittweise Formularanzeige
 function initializeFormSteps() {
@@ -74,7 +162,7 @@ function setupFormValidation() {
             typeValid = validateMatching();
         }
         
-        submitButton.disabled = !typeValid;
+        submitButton.disabled = !typeValid || !getAdminKey();
     }
     
     function validateMultipleChoice() {
@@ -346,6 +434,9 @@ document.getElementById('quizForm').addEventListener('submit', async (e) => {
     }
 
     try {
+        const adminKey = ensureAdminKey();
+        if (!adminKey) return;
+
         let url = API_URL;
         let method = 'POST';
         
@@ -358,7 +449,8 @@ document.getElementById('quizForm').addEventListener('submit', async (e) => {
         const response = await fetch(url, {
             method: method,
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-API-Key': adminKey
             },
             body: JSON.stringify(data)
         });
@@ -423,7 +515,14 @@ function resetForm() {
 // Fragen laden
 async function loadQuestions() {
     try {
-        const response = await fetch(API_URL);
+        const key = ensureReadKey();
+        if (!key) return;
+
+        const response = await fetch(API_URL, {
+            headers: {
+                'X-API-Key': key
+            }
+        });
         const questions = await response.json();
 
         const listDiv = document.getElementById('questionsList');
@@ -510,7 +609,14 @@ let editingQuestionId = null;
 
 async function editQuestion(id) {
     try {
-        const response = await fetch(`${API_URL}/${id}`);
+        const key = ensureReadKey();
+        if (!key) return;
+
+        const response = await fetch(`${API_URL}/${id}`, {
+            headers: {
+                'X-API-Key': key
+            }
+        });
         if (!response.ok) {
             showMessage('Fehler beim Laden der Frage! ❌', 'error');
             return;
@@ -616,8 +722,14 @@ async function deleteQuestion(id) {
     }
 
     try {
+        const adminKey = ensureAdminKey();
+        if (!adminKey) return;
+
         const response = await fetch(`${API_URL}/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'X-API-Key': adminKey
+            }
         });
 
         if (response.ok) {
@@ -635,4 +747,11 @@ async function deleteQuestion(id) {
 window.addEventListener('load', function() {
     loadQuestions();
     initializeFormSteps();
+    document.getElementById('adminKeyInput').value = getAdminKey();
+    updateAdminKeyState();
+    const userInput = document.getElementById('userKeyInput');
+    if (userInput) {
+        userInput.value = getUserKey();
+    }
+    updateUserKeyState();
 });

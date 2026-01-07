@@ -1,4 +1,44 @@
 const API_URL = '/api/quiz';
+const USER_KEY_STORAGE = 'quizUserKey';
+
+function getUserKey() {
+    return localStorage.getItem(USER_KEY_STORAGE) || '';
+}
+
+function saveUserKey() {
+    const val = document.getElementById('userKeyInput').value.trim();
+    if (!val) {
+        alert('Bitte einen User-Key einfügen.');
+        return;
+    }
+    localStorage.setItem(USER_KEY_STORAGE, val);
+    updateUserKeyState();
+    loadStatistics();
+}
+
+function clearUserKey() {
+    localStorage.removeItem(USER_KEY_STORAGE);
+    document.getElementById('userKeyInput').value = '';
+    updateUserKeyState();
+}
+
+function updateUserKeyState() {
+    const hasKey = !!getUserKey();
+    const badge = document.getElementById('userKeyStatus');
+    if (badge) {
+        badge.className = 'badge ' + (hasKey ? 'bg-success' : 'bg-secondary');
+        badge.textContent = hasKey ? 'Key gesetzt' : 'Kein Schlüssel gesetzt';
+    }
+}
+
+function ensureUserKey() {
+    const key = getUserKey();
+    if (!key) {
+        alert('Bitte zuerst einen User-Key speichern.');
+        return null;
+    }
+    return key;
+}
 
 let allQuestions = [];
 let currentQuestions = [];
@@ -9,6 +49,11 @@ let userAnswers = [];
 
 // Lade Statistiken beim Start
 window.addEventListener('load', async function() {
+    const input = document.getElementById('userKeyInput');
+    if (input) {
+        input.value = getUserKey();
+    }
+    updateUserKeyState();
     await loadStatistics();
     
     // Prüfe URL-Parameter für Kategorie
@@ -22,7 +67,12 @@ window.addEventListener('load', async function() {
 // Lade Statistiken
 async function loadStatistics() {
     try {
-        const response = await fetch(`${API_URL}/statistics`);
+        const key = ensureUserKey();
+        if (!key) return;
+
+        const response = await fetch(`${API_URL}/statistics`, {
+            headers: { 'X-API-Key': key }
+        });
         const stats = await response.json();
         
         document.getElementById('totalQuestions').textContent = stats.totalQuestions;
@@ -39,11 +89,16 @@ async function startQuiz() {
     const difficulty = document.getElementById('filterDifficulty').value;
     
     try {
+        const key = ensureUserKey();
+        if (!key) return;
+
         let url = `${API_URL}/filter?`;
         if (category) url += `category=${encodeURIComponent(category)}&`;
         if (difficulty) url += `difficulty=${encodeURIComponent(difficulty)}`;
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: { 'X-API-Key': key }
+        });
         allQuestions = await response.json();
         
         if (allQuestions.length === 0) {

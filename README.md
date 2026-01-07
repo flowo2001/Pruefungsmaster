@@ -12,6 +12,15 @@ You can run your application in dev mode that enables live coding using:
 ./mvnw quarkus:dev
 ```
 
+## API-Keys & Authentifizierung
+
+Die Verwaltung der Fragen ist jetzt durch API-Keys geschützt.
+
+- Admin-Key: notwendig für POST/PUT/DELETE auf `/api/quiz` und für die Oberfläche `create.html`.
+- Key-Manager-Key: notwendig für alle Requests auf `/api/keys` (Schlüssel erstellen/löschen/auflisten).
+- Master-Key (Bootstrap): setze `app.master-key` per Umgebungsvariable oder JVM-Property, um den ersten Key zu erzeugen (z. B. `-Dapp.master-key=CHANGE_ME`).
+- Frontend: Schlüssel werden nur im Browser in `localStorage` abgelegt. In `create.html` den Admin-Key speichern, in `keys.html` den Key-Manager-Key.
+
 > **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
 
 ## Packaging and running the application
